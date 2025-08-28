@@ -14,7 +14,6 @@ YELLOW = (197, 227, 27)
 WIDTH, HEIGHT = 500, 400  # Размеры главного окна
 WIDTH2, HEIGHT2 = 450, 350  # размеры рабочей области
 
-
 # Класс mob
 class Mob:
     def __init__(self):
@@ -31,7 +30,7 @@ class Mob:
     def get_circle(self):
         return self.surface
 
-    def rect_circle(self):
+    def rect(self):
         return self.surface.get_rect(topleft=(self.x, self.y))
 
 # Класс препятствия
@@ -45,14 +44,13 @@ class Obstacle:
 
         # Создание плоскости препятствий
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(self.surface, WHITE, (0, 0, self.width, self.height), self.thickness)
+        pygame.draw.rect(self.surface, WHITE, (0, 0, self.width, self.height), self.thickness) #рисуем на плоскости контур
 
     def get_obstacle(self):
         return self.surface  # Возвращаем уже созданный и залитый Surface
 
-    def rect_obstacle(self):
+    def rect(self):
         return self.surface.get_rect(topleft=(self.x, self.y))
-
 
 class Finish:
     def __init__(self):
@@ -68,47 +66,34 @@ class Finish:
     def get_finish(self):
         return self.surface
 
-    def rect_finish(self):
+    def rect(self):
         return self.surface.get_rect(topleft=(self.x, self.y))
 
-
 mob = Mob()
-obstacles = []  # Список из 5 фигур со случайными координатами
-finishes = []
 
-for _ in range(4):
-    while True:
-        new_obstacle = Obstacle()
-        new_rect = new_obstacle.rect_obstacle()
+def create_object_safely(cls, container, count):
+    objects = []
+    for _ in range(count):
+        while True:
+            obj = cls()
+            rect_rect = obj.rect()
 
-        # Проверка на то, полностью ли внутри рабочей области
-        inside_bounds_obs = (new_rect.left >= 0 and
-                             new_rect.top >= 0 and
-                             new_rect.right <= WIDTH2 and
-                             new_rect.bottom <= HEIGHT2)
+            # Проверка границ
+            inside_bounds = (rect_rect.left >= 0 and
+                             rect_rect.top >= 0 and
+                             rect_rect.right <= WIDTH2 and
+                             rect_rect.bottom <= HEIGHT2)
 
-        # не пересекается ни с одним из существующих
-        no_overlap_obs = not any(new_rect.colliderect(obs.rect_obstacle()) for obs in obstacles)
+            all_items = container + objects
+            no_overlap = not any(rect_rect.colliderect(item.rect()) for item in all_items)
 
-        if inside_bounds_obs and no_overlap_obs:
-            obstacles.append(new_obstacle)
-            break
+            if inside_bounds and no_overlap:
+                objects.append(obj)
+                break
+    return objects
 
-for _ in range(1):
-    while True:
-        finish = Finish()
-        rect_finish = finish.rect_finish()
-
-        inside_bounds_fin = (rect_finish.left >= 0 and
-                             rect_finish.top >= 0 and
-                             rect_finish.right <= WIDTH2 and
-                             rect_finish.bottom <= HEIGHT2)
-
-        no_overlap_fin = not any(rect_finish.colliderect(obs.rect_obstacle()) for obs in obstacles)
-
-        if inside_bounds_fin and no_overlap_fin:
-            finishes.append(finish)
-            break
+obstacles = create_object_safely(Obstacle, container=[], count=4)
+finishes = create_object_safely(Finish, container=obstacles, count=1)
 
 pygame.display.set_caption('Pathfinder')  # Название окна
 sc = pygame.display.set_mode((WIDTH, HEIGHT))  # главное окно
@@ -144,23 +129,21 @@ while True:
     surf = pygame.Surface((WIDTH2, HEIGHT2))
     surf.fill(BLACK)
 
-    surf.blit(mob.get_circle(), mob.rect_circle())
+    surf.blit(mob.get_circle(), mob.rect())
 
     pygame.draw.rect(surf, WHITE, (0, 0, WIDTH2, HEIGHT2), 2)
 
-    for fin in finishes:
-        surf.blit(fin.get_finish(), fin.rect_finish())
+    for finish in finishes:
+        surf.blit(finish .get_finish(), finish .rect())
 
-        if fin.rect_finish().contains(mob.rect_circle()):
+        if finish .rect().contains(mob.rect()):
             print('Вы полностью внутри!')
 
     for obstacle in obstacles:
-        surf.blit(obstacle.get_obstacle(), obstacle.rect_obstacle())
+        surf.blit(obstacle.get_obstacle(), obstacle.rect())
 
-        if obstacle.rect_obstacle().contains(mob.rect_circle()):
+        if obstacle.rect().contains(mob.rect()):
             print('Вы полностью внутри!')
-
-
 
     sc.blit(surf, (MARGIN, MARGIN))
     pygame.display.update()
