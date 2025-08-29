@@ -17,13 +17,13 @@ WIDTH2, HEIGHT2 = 450, 350  # размеры рабочей области
 # Класс mob
 class Mob:
     def __init__(self):
-        self.x = WIDTH2 // 2
-        self.y = HEIGHT2 // 2
+        self.x = 20
+        self.y = 20
         self.radius = 10
         self.diameter = self.radius * 2
         self.speed = 2
 
-        # Создание плоскости нашего моба
+        # Создание плоскость нашего моба
         self.surface = pygame.Surface((self.diameter, self.diameter), pygame.SRCALPHA)
         pygame.draw.circle(self.surface, WHITE, (self.radius, self.radius), self.radius)  # рисуем на плоскости круг
 
@@ -44,13 +44,13 @@ class Obstacle:
 
         # Создание плоскости препятствий
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(self.surface, WHITE, (0, 0, self.width, self.height), self.thickness) #рисуем на плоскости контур
+        pygame.draw.rect(self.surface, WHITE, (0, 0, self.width, self.height), self.thickness) #рисуем на плоскости контур, обводящий контур прозрачной Surface
 
     def get_obstacle(self):
         return self.surface  # Возвращаем уже созданный и залитый Surface
 
     def rect(self):
-        return self.surface.get_rect(topleft=(self.x, self.y))
+        return self.surface.get_rect(topleft=(self.x, self.y)) #создаём rect на плоскости surface, размещая его по координатам
 
 class Finish:
     def __init__(self):
@@ -68,8 +68,6 @@ class Finish:
 
     def rect(self):
         return self.surface.get_rect(topleft=(self.x, self.y))
-
-mob = Mob()
 
 def create_object_safely(cls, container, count):
     objects = []
@@ -90,10 +88,16 @@ def create_object_safely(cls, container, count):
             if inside_bounds and no_overlap:
                 objects.append(obj)
                 break
+
     return objects
+
+def smob(mob):
+    for mob_mob in mob:
+        return mob_mob
 
 obstacles = create_object_safely(Obstacle, container=[], count=4)
 finishes = create_object_safely(Finish, container=obstacles, count=1)
+mob = create_object_safely(Mob, container=obstacles, count=1)
 
 pygame.display.set_caption('Pathfinder')  # Название окна
 sc = pygame.display.set_mode((WIDTH, HEIGHT))  # главное окно
@@ -104,45 +108,46 @@ while True:
         if event.type == pygame.QUIT:
             exit()
 
+    #Пока ручное управление мобом с ограничением границы рабочей области
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_LEFT]:
-        mob.x -= mob.speed
-        if mob.x < 0:
-            mob.x = 0
+        smob(mob).x -= smob(mob).speed
+        if smob(mob).x < 0:
+            smob(mob).x = 0
     elif keys[pygame.K_RIGHT]:
-        mob.x += mob.speed
-        if mob.x > 430:
-            mob.x = 430
+        smob(mob).x += smob(mob).speed
+        if smob(mob).x > 430:
+            smob(mob).x = 430
     elif keys[pygame.K_DOWN]:
-        mob.y += mob.speed
-        if mob.y > 330:
-            mob.y = 330
+        smob(mob).y += smob(mob).speed
+        if smob(mob).y > 330:
+            smob(mob).y = 330
     elif keys[pygame.K_UP]:
-        mob.y -= mob.speed
-        if mob.y < 0:
-            mob.y = 0
+        smob(mob).y -= smob(mob).speed
+        if smob(mob).y < 0:
+            smob(mob).y = 0
 
     sc.fill(BLACK)
 
-    MARGIN = 25
-    surf = pygame.Surface((WIDTH2, HEIGHT2))
+    MARGIN = 25 #отступ, с которым будет размещена рабочая область на экране
+    surf = pygame.Surface((WIDTH2, HEIGHT2)) #рабочая область
     surf.fill(BLACK)
 
-    surf.blit(mob.get_circle(), mob.rect())
+    surf.blit(smob(mob).get_circle(), smob(mob).rect()) #размещаем на плоскости surf плоскость mob. smob(mob).rect() - по каким координатам
 
-    pygame.draw.rect(surf, WHITE, (0, 0, WIDTH2, HEIGHT2), 2)
+    pygame.draw.rect(surf, WHITE, (0, 0, WIDTH2, HEIGHT2), 2) #визуально выделяем рабочую область белым контуром по её границе
 
     for finish in finishes:
-        surf.blit(finish .get_finish(), finish .rect())
+        surf.blit(finish.get_finish(), finish .rect())
 
-        if finish .rect().contains(mob.rect()):
+        if finish .rect().contains(smob(mob).rect()):
             print('Вы полностью внутри!')
 
     for obstacle in obstacles:
         surf.blit(obstacle.get_obstacle(), obstacle.rect())
 
-        if obstacle.rect().contains(mob.rect()):
+        if obstacle.rect().contains(smob(mob).rect()):
             print('Вы полностью внутри!')
 
     sc.blit(surf, (MARGIN, MARGIN))
