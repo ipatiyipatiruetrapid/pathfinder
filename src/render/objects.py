@@ -1,79 +1,62 @@
 import pygame
 import random
-from config import BLACK, WHITE, WIDTH, HEIGHT, WIDTH2, HEIGHT2, FPS, YELLOW, COLORS, Colors, MARGIN
+from config import WIDTH, HEIGHT, WIDTH2, HEIGHT2, FPS, Colors, MARGIN
+
+class Rect:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA) # Создание плоскости для объекта
+
+    def get_surface(self):
+        return self.surface # Возвращаем уже созданный и залитый
+
+    def rect(self):
+        return self.surface.get_rect(topleft=(self.x, self.y))
 
 
-class PraOtec:
+class Mob(Rect):
     def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.width = 0
-        self.height = 0
-
-# Create child class of PraOtec
-class Child(PraOtec):
-    def __init__(self):
-        super().__init__()
-        self.x = 10
-        self.y = 10
-        self.width = 20
-        self.height = 20
-
-
-# Класс mob
-class Mob:
-    def __init__(self):
-        self.x = 20
-        self.y = 20
         self.radius = 10
-        self.diameter = self.radius * 2
+        diameter = self.radius * 2
+        x, y = 20, 20
+        super().__init__(x, y, diameter, diameter)
         self.speed = 2
         self.theta = 0
-        # Создание плоскость нашего моба
-        self.surface = pygame.Surface((self.diameter, self.diameter), pygame.SRCALPHA)
-        pygame.draw.circle(self.surface, Colors.MOB_COLOR, (self.radius, self.radius), self.radius)  # рисуем на плоскости круг
+        pygame.draw.circle(self.surface, Colors.MOB_COLOR, (self.radius, self.radius), self.radius)
 
     def get_circle(self):
-        return self.surface
+        return self.get_surface()
 
-    def rect(self):
-        return self.surface.get_rect(topleft=(self.x, self.y))
 
-# Класс препятствия
-class Obstacle:
+class Obstacle(Rect):
     def __init__(self):
-        self.x = random.randint(10, 450)
-        self.y = random.randint(10, 350)
-        self.width = random.randint(40, 100)
-        self.height = random.randint(40, 100)
+        width = random.randint(40, 100)
+        height = random.randint(40, 100)
+        x = random.randint(10, 450)
+        y = random.randint(10, 350)
+        super().__init__(x, y, width, height)
         self.thickness = 4
-
-        # Создание плоскости препятствий
-        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(self.surface, WHITE, (0, 0, self.width, self.height), self.thickness) #рисуем на плоскости контур, обводящий контур прозрачной Surface
+        pygame.draw.rect(self.surface, Colors.WHITE, (0, 0, self.width, self.height), self.thickness)
 
     def get_obstacle(self):
-        return self.surface  # Возвращаем уже созданный и залитый Surface
+        return self.get_surface()
 
-    def rect(self):
-        return self.surface.get_rect(topleft=(self.x, self.y)) #создаём rect на плоскости surface, размещая его по координатам
 
-class Finish:
+class Finish(Rect):
     def __init__(self):
-        self.x = random.randint(10, 450)
-        self.y = random.randint(10, 350)
-        self.width = 25
-        self.height = 25
-
-        self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        width, height = 25, 25
+        x = random.randint(10, 450)
+        y = random.randint(10, 350)
+        super().__init__(x, y, width, height)
         self.surface.set_alpha(100)
-        pygame.draw.rect(self.surface, YELLOW, (0, 0, self.width, self.height))
+        pygame.draw.rect(self.surface, Colors.YELLOW, (0, 0, self.width, self.height))
 
     def get_finish(self):
-        return self.surface
+        return self.get_surface()
 
-    def rect(self):
-        return self.surface.get_rect(topleft=(self.x, self.y))
 
 def create_object_safely(cls, container, count):
     objects = []
