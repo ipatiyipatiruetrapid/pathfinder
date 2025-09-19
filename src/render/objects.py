@@ -16,16 +16,19 @@ class Rect:
     def rect(self):
         return self.surface.get_rect(topleft=(self.x, self.y))
 
-
 class Mob(Rect):
     def __init__(self):
         self.radius = 10
         diameter = self.radius * 2
         x, y = 20, 20
         super().__init__(x, y, diameter, diameter)
-        self.speed = 2
+        self.speed = 1.5
         self.theta = 0
+        self.angle = 0
+        self.rotation_speed = 4
         pygame.draw.circle(self.surface, Colors.MOB_COLOR, (self.radius, self.radius), self.radius)
+
+        pygame.draw.line(self.surface, Colors.BLACK, (self.radius, self.radius), (20,10), 2)
 
     def get_circle(self):
         return self.get_surface()
