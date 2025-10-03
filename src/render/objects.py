@@ -26,13 +26,29 @@ class Mob(Rect):
         self.theta = 0
         self.angle = 0
         self.rotation_speed = 4
+        self.ray_length = 120
         pygame.draw.circle(self.surface, Colors.MOB_COLOR, (self.radius, self.radius), self.radius)
 
         pygame.draw.line(self.surface, Colors.BLACK, (self.radius, self.radius), (20,10), 2)
 
-    def get_circle(self):
-        return self.get_surface()
 
+    def rotate(self, direction):
+        # direction = 1 - вперёд
+        # direction = -1 - назад
+        # вектор направления по углу
+        vector = pygame.math.Vector2(1, 0).rotate(-self.angle)
+        self.x += vector.x * self.speed * direction
+        self.y += vector.y * self.speed * direction
+
+    def get_rays(self):
+        center = pygame.math.Vector2(self.x + self.radius, self.y + self.radius)
+
+        rays = []
+        for offset in [0, -30, 30]:  # прямо, влево и вправо
+            direction = pygame.math.Vector2(1, 0).rotate(-(self.angle + offset))
+            end = center + direction * self.ray_length
+            rays.append((center, end))
+        return rays
 
 class Obstacle(Rect):
     def __init__(self):
@@ -44,8 +60,6 @@ class Obstacle(Rect):
         self.thickness = 4
         pygame.draw.rect(self.surface, Colors.WHITE, (0, 0, self.width, self.height), self.thickness)
 
-    def get_obstacle(self):
-        return self.get_surface()
 
 
 class Finish(Rect):
@@ -57,8 +71,6 @@ class Finish(Rect):
         self.surface.set_alpha(100)
         pygame.draw.rect(self.surface, Colors.YELLOW, (0, 0, self.width, self.height))
 
-    def get_finish(self):
-        return self.get_surface()
 
 
 def create_object_safely(cls, container, count):
